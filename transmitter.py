@@ -181,6 +181,9 @@ for location in locations:
 
             # move nzbs to final destination if no empty segments, check for nzb errors
             for account_id, account in accounts.items():
+                if not os.path.isfile(f"{staging_dir}/nzb/{chunk_id}-{account_id}.nzb"):
+                    print(f"!nzb skip #{account_id} {chunk_n}/{chunk_count} {unit}")
+                    continue
                 if not check_nzb(f"{staging_dir}/nzb/{chunk_id}-{account_id}.nzb"):
                     print(f"!error #{account_id} {chunk_n}/{chunk_count} {unit}")
                     shutil.move(f"{staging_dir}/nzb/{chunk_id}-{account_id}.nzb", f"{staging_dir}/nzb/{chunk_id}-{account_id}.nzb.{t_time}.fail")
