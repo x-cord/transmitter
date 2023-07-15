@@ -48,6 +48,8 @@ def get_chunks(path, split_size):
 
     files = glob.glob("**", root_dir=path, recursive=True, include_hidden=True)
     for file in natsorted(files):
+        if file.endswith(".lwi") or file.endswith(".ffindex"):
+            continue
         file_path = f"{path}/{file}"
         if not os.path.isfile(file_path):
             continue
