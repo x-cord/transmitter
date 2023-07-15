@@ -102,7 +102,9 @@ for location in locations:
             t_part = "" if chunk_count <= 1 else f".part{chunk_n:04d}"
 
             new_par = False
-            par_files = glob.glob(f"{staging_dir}/par/{chunk_id}/*.par2")
+            par_files = glob.glob(f"{tmp_dir}/{chunk_id}/*.par2")
+            if not par_files:
+                par_files = glob.glob(f"{staging_dir}/par/{chunk_id}/*.par2")
 
             # generate par files
             if not par_files:
@@ -123,9 +125,15 @@ for location in locations:
                 if not has_nzb:
                     print(f"par2 {chunk_n}/{chunk_count} {unit}")
                     shutil.rmtree(f"{tmp_dir}/{chunk_id}", ignore_errors=True)
-                    os.makedirs(f"{tmp_dir}/{chunk_id}", exist_ok=True)
+                    shutil.rmtree(f"{tmp_dir}/{chunk_id}-tmp", ignore_errors=True)
+                    os.makedirs(f"{tmp_dir}/{chunk_id}-tmp", exist_ok=True)
                     shutil.rmtree(f"{failed_dir}/{chunk_id}", ignore_errors=True)
-                    subprocess.run(parpar_path + ["-s2800K", "--threads", "4", "--slice-size-multiple=700K", "--auto-slice-size", "-r1n*1.2", "--noindex"] + ([] if is_file else ["--filepath-format", "path", "--filepath-base", unit]) + ["--quiet", "--progress", "stderr", "--out", f"{tmp_dir}/{chunk_id}/{unit_name}", "--input-file0", f"{tmp_dir}/chunk.txt"])
+                    p = subprocess.run(parpar_path + ["-s5600K", "--threads", "4", "--slice-size-multiple=700K", "--auto-slice-size", "-r1n*1.2", "--noindex"] + ([] if is_file else ["--filepath-format", "path", "--filepath-base", unit]) + ["--quiet", "--progress", "stderr", "--out", f"{tmp_dir}/{chunk_id}-tmp/{unit_name}{t_part}", "--input-file0", f"{tmp_dir}/chunk.txt"])
+                    if p.returncode != 0:
+                        print(f"!parpar fail {chunk_n}/{chunk_count} {unit}")
+                        shutil.rmtree(f"{tmp_dir}/{chunk_id}-tmp", ignore_errors=True)
+                        continue
+                    shutil.move(f"{tmp_dir}/{chunk_id}-tmp", f"{tmp_dir}/{chunk_id}")
                 par_files = glob.glob(f"{tmp_dir}/{chunk_id}/*.par2")
                 if not par_files:
                     print(f"!no par2 {chunk_n}/{chunk_count} {unit}")
